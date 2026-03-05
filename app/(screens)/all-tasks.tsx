@@ -16,6 +16,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -78,6 +79,10 @@ export default function AllTasksScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { width } = useWindowDimensions();
+  const isTablet = width > 768;
+  const numColumns = isTablet ? 2 : 1;
+  const itemWidth = isTablet ? (width - 64) / 2 : width - 40;
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -164,6 +169,7 @@ export default function AllTasksScreen() {
         }}
         activeOpacity={0.7}
         className={`bg-white rounded-[24px] mb-6 overflow-hidden shadow-sm border border-gray-100 ${isTaskDone(item) ? "opacity-60" : ""}`}
+        style={{ width: itemWidth }}
       >
         <View className="p-5">
           <View className="flex-row justify-between items-start mb-4">
@@ -177,15 +183,6 @@ export default function AllTasksScreen() {
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
-              <TouchableOpacity
-                onPress={() => {
-                  setTaskToDelete(item.id);
-                  setShowDeleteModal(true);
-                }}
-                className="w-10 h-10 rounded-full items-center justify-center bg-gray-50 border border-gray-100"
-              >
-                <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
-              </TouchableOpacity>
               <View
                 className="w-10 h-10 rounded-full items-center justify-center"
                 style={{ backgroundColor: cardColor + "40" }}
@@ -315,7 +312,9 @@ export default function AllTasksScreen() {
                     ({tasks.filter((t) => !isTaskDone(t)).length})
                   </Text>
                 </Text>
-                {tasks.filter((t) => !isTaskDone(t)).map(renderTaskItem)}
+                <View className="flex-row flex-wrap justify-between">
+                  {tasks.filter((t) => !isTaskDone(t)).map(renderTaskItem)}
+                </View>
               </View>
             )}
 
@@ -331,7 +330,9 @@ export default function AllTasksScreen() {
                   </Text>
                 </View>
               ) : (
-                tasks.filter((t) => isTaskDone(t)).map(renderTaskItem)
+                <View className="flex-row flex-wrap justify-between">
+                  {tasks.filter((t) => isTaskDone(t)).map(renderTaskItem)}
+                </View>
               )}
             </View>
           </View>
@@ -351,6 +352,10 @@ export default function AllTasksScreen() {
         }}
         onTaskCreated={() => {
           setShowSuccessModal(true);
+        }}
+        onDelete={(taskId) => {
+          setTaskToDelete(taskId);
+          setShowDeleteModal(true);
         }}
       />
 
@@ -372,6 +377,11 @@ export default function AllTasksScreen() {
           setTimeout(() => {
             setOpen(true);
           }, 50); // Small delay to allow TaskDetailModal to close smoothly before opening TaskModal
+        }}
+        onDelete={(taskId) => {
+          setShowDetailModal(false);
+          setTaskToDelete(taskId);
+          setShowDeleteModal(true);
         }}
       />
 

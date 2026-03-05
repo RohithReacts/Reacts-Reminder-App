@@ -13,6 +13,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -80,6 +81,8 @@ export default function ScheduleScreen() {
   const [open, setOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(startOfToday());
+  const { width } = useWindowDimensions();
+  const isTablet = width > 768;
 
   // Delete Modal States
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -334,6 +337,10 @@ export default function ScheduleScreen() {
         }}
         onTaskCreated={() => {
           setShowSuccessModal(true);
+        }}
+        onDelete={(taskId) => {
+          setTaskToDelete(taskId);
+          setShowDeleteModal(true);
         }}
       />
 

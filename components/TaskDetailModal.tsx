@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import Avatar from "./Avatar";
@@ -18,6 +19,7 @@ interface TaskDetailModalProps {
   onClose: () => void;
   task: any | null;
   onEdit?: () => void;
+  onDelete?: (taskId: string) => void;
 }
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -81,7 +83,11 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onClose,
   task,
   onEdit,
+  onDelete,
 }) => {
+  const { width, height: S_HEIGHT } = useWindowDimensions();
+  const isTablet = width > 768;
+  const modalWidth = isTablet ? Math.min(width * 0.7, 600) : width;
   const panY = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
@@ -98,7 +104,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 100 || gestureState.vy > 0.5) {
           Animated.timing(panY, {
-            toValue: SCREEN_HEIGHT,
+            toValue: S_HEIGHT,
             duration: 300,
             useNativeDriver: true,
           }).start(onClose);
@@ -131,7 +137,14 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     >
       <View className="flex-1 bg-black/40 justify-end">
         <Animated.View
-          style={[styles.modalContent, { transform: [{ translateY: panY }] }]}
+          style={[
+            styles.modalContent,
+            {
+              transform: [{ translateY: panY }],
+              width: modalWidth,
+              alignSelf: "center",
+            },
+          ]}
           className="bg-white rounded-t-[40px] shadow-2xl overflow-hidden"
         >
           {/* Header Background Pattern */}
@@ -277,6 +290,19 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   <Ionicons name="create" size={20} color="white" />
                   <Text className="text-white font-bold text-lg ml-2">
                     Edit Task
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {onDelete && (
+                <TouchableOpacity
+                  onPress={() => {
+                    onDelete(task.id);
+                  }}
+                  className="flex-1 bg-red-50 py-4 rounded-2xl items-center flex-row justify-center shadow-lg shadow-red-100"
+                >
+                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                  <Text className="text-red-500 font-bold text-lg ml-2">
+                    Delete Task
                   </Text>
                 </TouchableOpacity>
               )}

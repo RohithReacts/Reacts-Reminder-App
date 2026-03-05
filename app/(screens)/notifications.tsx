@@ -10,6 +10,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,6 +19,9 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [permissionGranted, setPermissionGranted] = useState(true);
+  const { width } = useWindowDimensions();
+  const isTablet = width > 768;
+  const itemWidth = isTablet ? (width - 64) / 2 : width - 40;
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -163,43 +167,45 @@ export default function NotificationsScreen() {
             </Text>
           </View>
         ) : (
-          notifications.map((notif) => (
-            <View
-              key={notif.identifier}
-              className="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100"
-            >
-              <View className="flex-row justify-between items-start">
-                <View className="flex-1 mr-4">
-                  <View className="flex-row items-center mb-1">
-                    <View className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
-                    <Text className="text-sm font-semibold text-blue-600 uppercase tracking-wider">
-                      Scheduled
+          <View className="flex-row flex-wrap justify-between">
+            {notifications.map((notif) => (
+              <View
+                key={notif.identifier}
+                className={`bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100 ${isTablet ? "w-[48%]" : "w-full"}`}
+              >
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-4">
+                    <View className="flex-row items-center mb-1">
+                      <View className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+                      <Text className="text-sm font-semibold text-blue-600 uppercase tracking-wider">
+                        Scheduled
+                      </Text>
+                    </View>
+                    <Text className="text-lg font-bold text-gray-900 mb-1">
+                      {notif.content.body || "Task Reminder"}
                     </Text>
+                    <View className="flex-row items-center mt-1">
+                      <Ionicons name="time-outline" size={14} color="#6B7280" />
+                      <Text className="text-gray-500 ml-1 text-sm">
+                        {formatTrigger(notif)}
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-lg font-bold text-gray-900 mb-1">
-                    {notif.content.body || "Task Reminder"}
-                  </Text>
-                  <View className="flex-row items-center mt-1">
-                    <Ionicons name="time-outline" size={14} color="#6B7280" />
-                    <Text className="text-gray-500 ml-1 text-sm">
-                      {formatTrigger(notif)}
-                    </Text>
-                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleDelete(notif.identifier)}
+                    className="p-2 bg-red-50 rounded-xl"
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  onPress={() => handleDelete(notif.identifier)}
-                  className="p-2 bg-red-50 rounded-xl"
-                >
-                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                </TouchableOpacity>
+                {notif.content.title !== "Task Reminder" && (
+                  <Text className="text-xs text-gray-400 mt-3 italic">
+                    Category: {notif.content.title}
+                  </Text>
+                )}
               </View>
-              {notif.content.title !== "Task Reminder" && (
-                <Text className="text-xs text-gray-400 mt-3 italic">
-                  Category: {notif.content.title}
-                </Text>
-              )}
-            </View>
-          ))
+            ))}
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>

@@ -12,10 +12,12 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -83,6 +85,9 @@ export default function HomeScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { width, height } = useWindowDimensions();
+  const isTablet = width > 768;
+  const cardWidth = isTablet ? (width - 60) / 2 : Math.min(width * 0.85, 320);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -158,6 +163,14 @@ export default function HomeScreen() {
     const ampm = hourInt >= 12 ? "PM" : "AM";
     const displayHour = hourInt % 12 || 12;
     return `${displayHour.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good Morning,";
+    if (hour >= 12 && hour < 17) return "Good Afternoon,";
+    if (hour >= 17 && hour < 21) return "Good Evening,";
+    return "Good Night,";
   };
 
   // Timeline slots (7 AM to 11 PM)
@@ -290,7 +303,7 @@ export default function HomeScreen() {
         }}
         activeOpacity={0.7}
         className={`bg-white rounded-[24px] mb-6 overflow-hidden shadow-sm border border-gray-100 ${isTaskDone(item) ? "opacity-60" : ""}`}
-        style={{ width: 280, marginRight: 16 }}
+        style={{ width: cardWidth, marginRight: 16 }}
       >
         <View className="p-5">
           {/* Header: Title and Date */}
@@ -377,7 +390,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "#ffffff" }}
-      edges={["top", "bottom"]}
+      edges={["top"]}
     >
       <StatusBar style="auto" />
 
@@ -390,10 +403,10 @@ export default function HomeScreen() {
           />
           <View className="ml-3">
             <Text className="text-sm text-gray-500 font-poppins-regular">
-              Hello,
+              {getGreeting()}
             </Text>
             <Text className="text-xl font-bold text-gray-900 font-poppins-bold">
-              Rohithreacts.dev
+              Rohith Kumar
             </Text>
           </View>
         </View>
@@ -448,10 +461,18 @@ export default function HomeScreen() {
             <ActivityIndicator size="large" color="#2563EB" />
           </View>
         ) : tasks.length === 0 ? (
-          <View className="flex-1 items-center justify-center opacity-50 py-20">
-            <Ionicons name="clipboard-outline" size={64} color="gray" />
-            <Text className="text-gray-500 mt-4 text-lg font-medium">
-              No tasks for today
+          <View className="flex-1 items-center justify-center py-10">
+            <Image
+              source={require("../../assets/images/clock.jpg")}
+              style={{
+                width: width * 0.6,
+                height: width * 0.6,
+                borderRadius: 30,
+              }}
+              resizeMode="cover"
+            />
+            <Text className="text-gray-400 mt-6 font-poppins-medium text-center text-lg">
+              Time to relax! No tasks for today.
             </Text>
           </View>
         ) : (
@@ -534,6 +555,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      <View className="justify-center items-center mb-5">
+        <Text className="text-sm text-gray-500 font-poppins-regular">
+          © 2026 Rohithreacts.dev
+        </Text>
+      </View>
+
       {/* Modals */}
       <TaskModal
         visible={open}
@@ -547,6 +574,10 @@ export default function HomeScreen() {
         }}
         onTaskCreated={() => {
           setShowSuccessModal(true);
+        }}
+        onDelete={(taskId) => {
+          setTaskToDelete(taskId);
+          setShowDeleteModal(true);
         }}
       />
 
@@ -567,6 +598,11 @@ export default function HomeScreen() {
           setTimeout(() => {
             setOpen(true);
           }, 50);
+        }}
+        onDelete={(taskId) => {
+          setShowDetailModal(false);
+          setTaskToDelete(taskId);
+          setShowDeleteModal(true);
         }}
       />
 

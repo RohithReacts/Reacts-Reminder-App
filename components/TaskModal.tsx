@@ -16,6 +16,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 
@@ -24,6 +25,7 @@ interface TaskModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   onTaskCreated?: () => void;
+  onDelete?: (taskId: string) => void;
   task?: any | null;
 }
 
@@ -34,6 +36,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   onSuccess,
   onTaskCreated,
+  onDelete,
   task,
 }) => {
   const [title, setTitle] = useState("");
@@ -44,6 +47,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [progress, setProgress] = useState(0);
   const [color, setColor] = useState("#2563EB");
   const [loading, setLoading] = useState(false);
+  const { width, height } = useWindowDimensions();
+  const isTablet = width > 768;
+  const modalWidth = isTablet ? Math.min(width * 0.7, 600) : width;
 
   const colors = [
     "#2563EB",
@@ -194,7 +200,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
     >
       <View className="flex-1 bg-black/40 justify-end">
         <Animated.View
-          style={[styles.modalContent, { transform: [{ translateY: panY }] }]}
+          style={[
+            styles.modalContent,
+            {
+              transform: [{ translateY: panY }],
+              width: modalWidth,
+              alignSelf: "center",
+            },
+          ]}
           className="bg-white rounded-t-[40px] pt-2 shadow-2xl"
         >
           {/* Dedicated Drag Handle */}
@@ -215,10 +228,24 @@ const TaskModal: React.FC<TaskModalProps> = ({
             }}
           >
             {/* Header */}
-            <View className="mb-8">
+            <View className="mb-8 flex-row items-center justify-between">
+              <View className="w-20" />
               <Text className="text-2xl font-bold text-gray-900 font-poppins-bold text-center">
                 {task ? "Edit Task" : "New Task"}
               </Text>
+              {task && onDelete ? (
+                <TouchableOpacity
+                  onPress={() => onDelete(task.id)}
+                  className="px-4 py-2 flex-row items-center justify-center bg-red-50 rounded-full"
+                >
+                  <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  <Text className="text-red-500 font-bold ml-1.5 text-sm">
+                    Delete
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <View className="w-20" />
+              )}
             </View>
 
             {/* Title */}
